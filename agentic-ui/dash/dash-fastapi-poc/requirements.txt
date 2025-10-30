@@ -1,0 +1,22 @@
+#agent_api
+fastapi
+uvicorn[standard]      # for running FastAPI apps
+langgraph
+langchain
+google-ads              # for interacting with the Google Ads API :contentReference[oaicite:0]{index=0}
+
+#dash_app
+pandas
+requests
+dash
+plotly
+
+#scraper
+duckduckgo-search 
+spacy 
+requests 
+beautifulsoup4
+
+#tools
+python-dotenv
+google-analytics-data

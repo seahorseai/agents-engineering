@@ -1,0 +1,43 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="this.formSubmitSubject$.next('')"
+>
+  <h2>Log in</h2>
+    @if (this.form.errors?.['wrongCredentials']) {
+      <div class="error">Invalid username or password</div>
+    }
+		@if(this.form.pending) {
+			<div>Trying to log the user...</div>
+		}
+    <label class="required">Username</label>
+    <input
+      formControlName="username"
+      type="text"
+      [ngClass]="{
+        'is-invalid': submitted && control['username'].errors,
+      }"
+      #usernameLogin
+      required
+    >
+    @if (submitted && control['username'].errors) {
+      @if (control['username'].errors['required']) {
+        <div class="error">username is required</div>
+      }
+    }
+    <label class="required">Password</label>
+    <input
+      formControlName="password"
+      type="password"
+      [ngClass]="{
+        'is-invalid': submitted && control['password'].errors,
+      }"
+      required
+    >
+    @if (submitted && control['password'].errors) {
+      @if (control['password'].errors['required']) {
+        <div class="error">password is required</div>
+      }
+    }
+    <button type="submit">Log in</button>
+    <p>If you don't have an account with us <a routerLink="/register">register here</a></p>
+</form>

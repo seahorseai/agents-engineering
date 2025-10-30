@@ -1,0 +1,18 @@
+$themes: (
+  'brand-b': (
+	'background-color': #3b82f6,
+	  ),
+  'brand-a': (
+	'background-color': #ff5733,
+  )
+);
+
+$active-theme: 'brand-a' !default;
+
+
+@function get-theme($key) {
+  @return map-get(map-get($themes, unquote($active-theme)), $key);
+}
+
+
+

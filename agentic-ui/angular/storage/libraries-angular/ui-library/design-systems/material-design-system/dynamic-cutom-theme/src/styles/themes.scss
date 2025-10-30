@@ -1,0 +1,33 @@
+@use 'sass:map'; // Required for map functions
+
+// Define the mixin
+@mixin theme($theme-colors) {
+  --background: #{map.get($theme-colors, 'background')};
+  --text: #{map.get($theme-colors, 'text')};
+  --primary: #{map.get($theme-colors, 'primary')};
+  --accent: #{map.get($theme-colors, 'accent')};
+}
+
+// Define theme color maps
+$light-theme-colors: (
+  'background': #ffffff,
+  'text': #000000,
+  'primary': #007bff,
+  'accent': #0056b3
+);
+
+$dark-theme-colors: (
+  'background': #121212,
+  'text': #ffffff,
+  'primary': #4caf50,
+  'accent': #2e7d32
+);
+
+// Apply the mixin within valid selectors
+.light-theme {
+  @include theme($light-theme-colors);
+}
+
+.dark-theme {
+  @include theme($dark-theme-colors);
+}

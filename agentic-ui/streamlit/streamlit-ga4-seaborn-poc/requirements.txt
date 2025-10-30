@@ -1,0 +1,4 @@
+google-analytics-data
+streamlit
+seaborn
+python-dotenv

@@ -1,0 +1,10 @@
+@if (this.user) {
+	<p>Welcome, {{user.username}}!</p>
+	<p>This is your data:</p>
+	<ul>
+		<li>Email: {{user.email}}</li>
+		<li>Id: {{user.id}}</li>
+	</ul>
+} @else {
+	<p>Log in!</p>
+}

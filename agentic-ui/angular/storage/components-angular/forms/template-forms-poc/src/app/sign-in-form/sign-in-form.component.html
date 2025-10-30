@@ -1,0 +1,10 @@
+<h1>Sign In</h1>
+<form #userForm="ngForm" (ngSubmit)="onSubmit()">
+	<label for="usernameElement">Username</label>
+	<input #usernameInput [(ngModel)]="username" type="text" name="username" id="usernameElement" required>
+	<small [ngClass]="{'display-none' : usernameInput.value.length > 0 }">Username is required</small>
+	<label for="passwordElement">Password</label>
+	<input #passwordInput [(ngModel)]="password" type="password" name="password" id="passwordElement" required minlength="10">
+	<small [ngClass]="{'display-none' : passwordInput.value.length >= 10 }">The password must have at least 10 characters</small>
+	<button [disabled]="userForm.invalid" type="submit">Log in</button>
+</form>

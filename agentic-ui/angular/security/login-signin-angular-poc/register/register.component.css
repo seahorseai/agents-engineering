@@ -1,0 +1,24 @@
+form {
+  max-width: 500px;
+  margin: 0 auto;
+  margin-top: 32px;
+  padding: 50px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 20px;
+}
+
+input.is-invalid{
+  border-color: red;
+}
+
+div.error{
+  background-color: red;
+  padding: 2px;
+}
+
+label.required::after  {
+  content:" *";
+  color: red;
+}

@@ -1,0 +1,12 @@
+label, input, small {
+	display: block;
+	margin-block: 1em;
+}
+
+.display-none {
+	display: none;
+}
+
+small {
+	color: red;
+}

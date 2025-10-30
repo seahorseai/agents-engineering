@@ -1,0 +1,35 @@
+/* You can add global styles to this file, and also import other style files */
+
+// Custom Bootstrap Theme (styles.scss)
+
+// Change Primary Colors
+$primary: #ff5733;  // Custom orange color
+$secondary: #17a2b8; // Custom teal color
+
+// Customize Button Styles
+$btn-border-radius: 8px;
+$btn-padding-y: 12px;
+$btn-padding-x: 20px;
+
+// Customizing NgbModal
+.modal-content {
+    background-color: #222;
+    color: white;
+    border-radius: 10px;
+  }
+  
+  // Customizing NgbAlert
+  .ngb-alert {
+    font-size: 18px;
+    border-radius: 8px;
+  }
+  
+  // Customizing NgbToast
+  .ngb-toast {
+    background-color: #ff5733 !important;
+    color: white !important;
+  }
+
+
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';

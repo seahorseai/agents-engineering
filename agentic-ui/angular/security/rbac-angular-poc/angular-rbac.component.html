@@ -1,0 +1,15 @@
+<main class="main">
+  <div class="content">
+      <div class="left-side">
+          <h3 routerLink="/admin" *isGranted="'ADMINISTRATOR'">Admin Panel</h3>
+          <a *isGranted="'STAFF'">This text is visible for staff members only</a><br>
+          <a *isGranted="'USER'">This text is visible for user members</a><br><br>
+          <button routerLink="/admin" *isGranted="'ADMINISTRATOR'">Settings Admin Panel</button>
+      </div>
+      <div class="divider" role="separator" aria-label="Divider"></div>
+      <div class="right-side">
+        <h1>Main Page</h1>
+      </div>
+    </div>
+</main>
+<router-outlet></router-outlet>

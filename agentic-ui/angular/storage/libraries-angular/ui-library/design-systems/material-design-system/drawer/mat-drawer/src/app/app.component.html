@@ -1,0 +1,45 @@
+<!-- <scroll class="scroll"></scroll> -->
+<mat-toolbar color="accent">
+  @if (isHandset$ | async) {
+    <button
+      type="button"
+      aria-label="Toggle drawer"
+      mat-icon-button
+      (click)="drawer.toggle()"
+    >
+      <mat-icon aria-label="Drawer toggle icon">menu</mat-icon>
+    </button>
+  }
+  <span>Mat-Toolbar</span>
+
+  <span class="spacer"></span>
+  @if (!(isHandset$ | async)) {
+    <a mat-button href="#">Link 1</a>
+    <a mat-button href="#">Link 2</a>
+    <a mat-button href="#">Link 3</a>
+  }
+</mat-toolbar>
+<mat-drawer-container class="drawer-container">
+  <mat-drawer
+    #drawer
+    id="drawer"
+    class="drawer"
+    fixedInViewport
+    [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+		[ngClass]="{hidden: !(isHandset$ | async)}"
+	>
+    <mat-toolbar color="accent">Menu</mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item href="#">Link 1</a>
+      <a mat-list-item href="#">Link 2</a>
+      <a mat-list-item href="#">Link 3</a>
+    </mat-nav-list>
+  </mat-drawer>
+
+  <mat-drawer-content>
+    <!-- Add Content Here -->
+		<main>
+      <h1>The drawer component is designed to add side content to a small section of your app.</h1>
+    </main>
+  </mat-drawer-content>
+</mat-drawer-container>

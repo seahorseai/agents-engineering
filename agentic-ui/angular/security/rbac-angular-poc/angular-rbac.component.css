@@ -1,0 +1,41 @@
+/* main {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: inherit;
+  position: relative;
+}
+
+.content {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 3rem; 
+}
+
+.content h1 {
+  margin-top: 2rem;
+  margin-left: 1.75rem;
+  font-size: 3.125rem;
+  color: #333333;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: -0.125rem;
+  font-family: "Segoe UI";
+}
+
+.left-side{
+  font-family:"Inter";
+  margin-top: 2rem;
+}
+
+.divider {
+  width: 1px;
+  height: auto;
+  background: linear-gradient(180deg, #FF4500 0%, #FF007F 50%, #8A2BE2 100%);
+  margin-inline: 0.5rem;
+} */

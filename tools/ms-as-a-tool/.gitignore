@@ -1,0 +1,139 @@
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.conda/
+*.conda
+*.env
+*.venv
+
+# ------------------------------
+# Jupyter
+# ------------------------------
+.ipynb_checkpoints/
+.jupyter/
+.lab/
+.jupyterlab-settings/
+.local/share/jupyter/
+*.nbconvert.ipynb
+
+# ------------------------------
+# VS Code
+# ------------------------------
+.vscode/
+.history/
+*.code-workspace
+
+# ------------------------------
+# OS / Misc
+# ------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+
+
+
+
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+env/
+.conda/
+*.conda
+*.env
+*.venv
+
+# PyInstaller
+*.manifest
+*.spec
+
+# C extensions
+*.c
+*.cpp
+*.ipynb_checkpoints
+
+# ------------------------------
+# Jupyter
+# ------------------------------
+.ipynb_checkpoints/
+.jupyter/
+.profile_default/
+*.nbconvert.ipynb
+
+# Jupyter Lab plugin state
+.lab/
+.jupyterlab-settings/
+.local/share/jupyter/
+
+# ------------------------------
+# VS Code
+# ------------------------------
+.vscode/
+.history/
+*.code-workspace
+
+# ------------------------------
+# LangChain / LangGraph / LangSmith
+# ------------------------------
+# LangSmith tracing artifacts
+.langsmith/
+langsmith.db
+langsmith_logs/
+
+# LangChain cache / temp
+.lc_cache/
+.langchain/
+langchain.db
+
+# LangGraph artifacts
+.langgraph/
+langgraph.db
+graph_runs/
+
+# ------------------------------
+# OS / Misc
+# ------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+

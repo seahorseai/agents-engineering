@@ -1,0 +1,31 @@
+<div class="container">
+    <h1>Product List</h1>
+  
+    <div>
+      <label for="category-select">Filter by Category:</label>
+      <select id="category-select" (change)="filterByCategory($any($event.target).value)">
+        <option value="">All</option>
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+    </div>
+  
+    <div *ngIf="products | async as products; else loading">
+      <div *ngIf="products.length; else noResults">
+        <div class="product" *ngFor="let product of products">
+          <h3>{{ product.title }}</h3>
+          <p>Category: {{ product.category }}</p>
+          <p>Price: ${{ product.price }}</p>
+        </div>
+      </div>
+      <ng-template #noResults>
+        <p>No products found.</p>
+      </ng-template>
+    </div>
+  
+    <ng-template #loading>
+      <p>Loading...</p>
+    </ng-template>
+  </div>
+  

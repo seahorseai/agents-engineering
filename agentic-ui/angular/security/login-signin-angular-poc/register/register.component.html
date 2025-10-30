@@ -1,0 +1,77 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="this.formSubmitSubject$.next('')"
+>
+  <h2>Sign Up</h2>
+		@if (this.form.errors?.['wrongCredentials']) {
+      <div class="error">Invalid data</div>
+    }
+		@if(this.form.pending) {
+			<div>Trying to register the user...</div>
+		}
+    <!-- username -->
+    <label class="required">Username</label>
+    <input
+      formControlName="username"
+      type="text"
+      [ngClass]="{
+        'is-invalid': submitted && control['username'].errors,
+      }"
+      required
+    >
+    @if (submitted && control['username'].errors) {
+      @if (control['username'].errors['required']) {
+        <div class="error">username is required</div>
+      }
+    }
+    <!-- email -->
+    <label>Email</label>
+    <input
+      formControlName="email"
+      type="email"
+      [ngClass]="{
+        'is-invalid': submitted && control['email'].errors && control['email'].errors['email'],
+      }"
+    >
+    @if (submitted && control['email'].errors) {
+      @if (control['email'].errors['email']) {
+        <div class="error">email isn't valid</div>
+      }
+    }
+    <!-- password -->
+    <label class="required">Password</label>
+    <input
+      formControlName="password"
+      type="password"
+      [ngClass]="{
+        'is-invalid': submitted && control['password'].errors,
+      }"
+      required
+    >
+    @if (submitted && control['password'].errors) {
+      @if (control['password'].errors['required']) {
+        <div class="error">password is required</div>
+      }
+    }
+    <!-- passwordConfirm -->
+    <label class="required">Confirm password</label>
+    <input
+      formControlName="passwordConfirm"
+      type="password"
+      [ngClass]="{
+        'is-invalid': submitted && control['passwordConfirm'].errors,
+      }"
+      required
+    >
+    @if (submitted) {
+      @if (control['passwordConfirm'].errors?.['required']) {
+        <div class="error">password confirmation is required</div>
+      }
+			@if (this.form.errors?.['unconfirmed']) {
+        <div class="error">password is unconfirmed</div>
+			}
+    }
+		
+    <button type="submit">Sign Up</button>
+    <p>If you have an account with us <a routerLink="/login">login here</a></p>
+</form>

@@ -1,0 +1,5 @@
+langgraph==0.4.8
+langchain-openai==0.3.22
+python-dotenv==1.1.0
+pytest==8.4.0
+langsmith==0.1.75

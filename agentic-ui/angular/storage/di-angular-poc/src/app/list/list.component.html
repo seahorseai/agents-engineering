@@ -1,0 +1,7 @@
+<h1>User List</h1>
+@for (user of users; track $index) {
+<p>{{user.name}}</p>
+}
+@empty {
+<p>Users not found!</p>
+}

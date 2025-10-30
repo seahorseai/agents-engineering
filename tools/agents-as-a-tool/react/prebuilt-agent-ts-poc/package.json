@@ -1,0 +1,17 @@
+{
+   "scripts": {
+      "start": "ts-node agent.ts"
+   },
+   "dependencies": {
+      "@langchain/community": "^0.3.49",
+      "@langchain/core": "^0.3.63",
+      "@langchain/langgraph": "^0.3.8",
+      "@langchain/openai": "^0.6.1",
+      "duck-duck-scrape": "^2.2.7"
+   },
+   "devDependencies": {
+      "@types/node": "^24.0.14",
+      "ts-node": "^10.9.2",
+      "typescript": "^5.8.3"
+   }
+}

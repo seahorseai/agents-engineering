@@ -1,0 +1,1094 @@
+{
+    "pipes": [],
+    "interfaces": [
+        {
+            "name": "FormField",
+            "id": "interface-FormField-11910a2601146bda836885bb552f3c6207488c60de4ff8af9dc718b6cb18a04321e8cb2f7a0f468de43e5b42cfcab2b90c8a3283e6a4169cb32b0cfae393dbda",
+            "file": "src/app/dynamic-form/dynamic-form.component.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormGroup, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';\nimport { InputComponent } from '../input/input.component';\n\ninterface FormField {\n  key: string;\n  label: string;\n  type: string;\n  placeholder?: string;\n  required?: boolean;\n  validators?: any[];\n}\n\n@Component({\n  selector: 'app-dynamic-form',\n  standalone: true,\n  imports: [CommonModule, ReactiveFormsModule, InputComponent],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\">\n      <div *ngFor=\"let field of formFields\">\n        <app-input\n          [formControlName]=\"field.key\"\n          [label]=\"field.label\"\n          [type]=\"field.type\"\n          [placeholder]=\"field.placeholder || ''\"\n          [showError]=\"isFieldInvalid(field.key)\"\n          [errorMessage]=\"getErrorMessage(field.key)\"\n        ></app-input>\n      </div>\n      \n      <div class=\"form-actions\">\n        <button type=\"button\" (click)=\"resetForm()\">Reset</button>\n        <button type=\"submit\" [disabled]=\"form.invalid\">Submit</button>\n      </div>\n      \n      <div *ngIf=\"submitted\">\n        <h3>Form Values:</h3>\n        <pre>{{ formValues }}</pre>\n      </div>\n    </form>\n  `,\n  styles: [`\n    form {\n      max-width: 500px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f9f9f9;\n      border-radius: 8px;\n      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n    }\n    \n    .form-actions {\n      display: flex;\n      gap: 10px;\n      margin-top: 20px;\n    }\n    \n    button {\n      padding: 8px 16px;\n      border: none;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 16px;\n    }\n    \n    button[type=\"submit\"] {\n      background-color: #007bff;\n      color: white;\n    }\n    \n    button[type=\"submit\"]:disabled {\n      background-color: #cccccc;\n      cursor: not-allowed;\n    }\n    \n    button[type=\"button\"] {\n      background-color: #6c757d;\n      color: white;\n    }\n    \n    pre {\n      background-color: #f0f0f0;\n      padding: 10px;\n      border-radius: 4px;\n      overflow: auto;\n      font-size: 14px;\n    }\n  `]\n})\nexport class DynamicFormComponent implements OnInit {\n  form!: FormGroup;\n  submitted = false;\n  formValues = '';\n  \n  // Define form fields dynamically\n  formFields: FormField[] = [\n    {\n      key: 'firstName',\n      label: 'First Name',\n      type: 'text',\n      placeholder: 'Enter your first name',\n      required: true\n    },\n    {\n      key: 'lastName',\n      label: 'Last Name',\n      type: 'text',\n      placeholder: 'Enter your last name',\n      required: true\n    },\n    {\n      key: 'email',\n      label: 'Email',\n      type: 'email',\n      placeholder: 'Enter your email',\n      required: true,\n      validators: [Validators.email]\n    },\n    {\n      key: 'password',\n      label: 'Password',\n      type: 'password',\n      placeholder: 'Enter password',\n      required: true,\n      validators: [Validators.minLength(8)]\n    },\n    {\n      key: 'age',\n      label: 'Age',\n      type: 'number',\n      placeholder: 'Enter your age',\n      validators: [Validators.min(18), Validators.max(120)]\n    }\n  ];\n\n  constructor(private fb: FormBuilder) {}\n\n  ngOnInit(): void {\n    this.createForm();\n  }\n\n  createForm(): void {\n    const formGroup: { [key: string]: FormControl } = {};\n    \n    this.formFields.forEach(field => {\n      const validators = [];\n      \n      if (field.required) {\n        validators.push(Validators.required);\n      }\n      \n      if (field.validators) {\n        validators.push(...field.validators);\n      }\n      \n      formGroup[field.key] = new FormControl('', validators);\n    });\n    \n    this.form = this.fb.group(formGroup);\n  }\n\n  isFieldInvalid(fieldName: string): boolean {\n    const control = this.form.get(fieldName);\n    return !!(control && control.invalid && (control.dirty || control.touched));\n  }\n\n  getErrorMessage(fieldName: string): string {\n    const control = this.form.get(fieldName);\n    \n    if (control?.hasError('required')) {\n      return 'This field is required';\n    }\n    \n    if (control?.hasError('email')) {\n      return 'Please enter a valid email address';\n    }\n    \n    if (control?.hasError('minlength')) {\n      return `Minimum length is ${control.getError('minlength').requiredLength} characters`;\n    }\n    \n    if (control?.hasError('min')) {\n      return `Minimum value is ${control.getError('min').min}`;\n    }\n    \n    if (control?.hasError('max')) {\n      return `Maximum value is ${control.getError('max').max}`;\n    }\n    \n    return 'Invalid input';\n  }\n\n  resetForm(): void {\n    this.form.reset();\n    this.submitted = false;\n    this.formValues = '';\n  }\n\n  onSubmit(): void {\n    if (this.form.valid) {\n      this.submitted = true;\n      this.formValues = JSON.stringify(this.form.value, null, 2);\n      console.log('Form submitted successfully:', this.form.value);\n    } else {\n      this.markFormGroupTouched(this.form);\n    }\n  }\n\n  // Helper to mark all controls as touched for validation\n  markFormGroupTouched(formGroup: FormGroup): void {\n    Object.values(formGroup.controls).forEach(control => {\n      control.markAsTouched();\n      \n      if ((control as any).controls) {\n        this.markFormGroupTouched(control as FormGroup);\n      }\n    });\n  }\n}",
+            "properties": [
+                {
+                    "name": "key",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 7
+                },
+                {
+                    "name": "label",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 8
+                },
+                {
+                    "name": "placeholder",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": true,
+                    "description": "",
+                    "line": 10
+                },
+                {
+                    "name": "required",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": true,
+                    "description": "",
+                    "line": 11
+                },
+                {
+                    "name": "type",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 9
+                },
+                {
+                    "name": "validators",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "any[]",
+                    "indexKey": "",
+                    "optional": true,
+                    "description": "",
+                    "line": 12
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 171,
+            "methods": [],
+            "extends": []
+        },
+        {
+            "name": "User",
+            "id": "interface-User-d4821beac0e4a852e513391b7470981c4353fdd95a18628bb68136c8695b489ee15b926e2e5031bc26cf30e1508e0a362c3ee13a06734702b4d15af140e485d5",
+            "file": "src/stories/user.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "export interface User {\n  name: string;\n}\n",
+            "properties": [
+                {
+                    "name": "name",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 2
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 171,
+            "methods": [],
+            "extends": []
+        }
+    ],
+    "injectables": [],
+    "guards": [],
+    "interceptors": [],
+    "classes": [],
+    "directives": [],
+    "components": [
+        {
+            "name": "AppComponent",
+            "id": "component-AppComponent-6173ca6949489e72e6d9b4824f7bbda0c37e46aeedb5c4299a415809d335444c23a90803ef564a7e7a630a522062d4946dc3ebf11528c5d1c0b6772089c44a93",
+            "file": "src/app/app.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "app-root",
+            "styleUrls": [],
+            "styles": [
+                "\n    .container {\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    \n    h1 {\n      text-align: center;\n      margin-bottom: 30px;\n      color: #333;\n    }\n  "
+            ],
+            "template": "<div class=\"container\">\n  <h1>Dynamic Form Example</h1>\n  <app-dynamic-form></app-dynamic-form>\n</div>\n",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [],
+            "outputsClass": [],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "DynamicFormComponent",
+                    "type": "component"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component } from '@angular/core';\nimport { DynamicFormComponent } from './dynamic-form/dynamic-form.component';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  imports: [DynamicFormComponent],\n  template: `\n    <div class=\"container\">\n      <h1>Dynamic Form Example</h1>\n      <app-dynamic-form></app-dynamic-form>\n    </div>\n  `,\n  styles: [`\n    .container {\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    \n    h1 {\n      text-align: center;\n      margin-bottom: 30px;\n      color: #333;\n    }\n  `]\n})\nexport class AppComponent {}",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "\n    .container {\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    \n    h1 {\n      text-align: center;\n      margin-bottom: 30px;\n      color: #333;\n    }\n  \n",
+            "extends": []
+        },
+        {
+            "name": "ButtonComponent",
+            "id": "component-ButtonComponent-d7bf0323e6da130e2609e2af0117b4a8d7cd874132206af50bf43dfc37044485fe50f2867ea76525730dd195b9b95a43802a12dadc6ad5cd7bf2faa07f19f0da",
+            "file": "src/stories/button.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "storybook-button",
+            "styleUrls": [
+                "./button.css"
+            ],
+            "styles": [],
+            "template": " <button  type=\"button\"\n  (click)=\"onClick.emit($event)\"\n  [ngClass]=\"classes\"\n  [ngStyle]=\"{ 'background-color': backgroundColor }\"\n>\n  {{ label }}\n</button>",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "backgroundColor",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "rawdescription": "\nWhat background color to use",
+                    "description": "<p>What background color to use</p>\n",
+                    "line": 25,
+                    "type": "string",
+                    "decorators": []
+                },
+                {
+                    "name": "label",
+                    "defaultValue": "'Button'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "pos": 760,
+                            "end": 773,
+                            "kind": 327,
+                            "id": 0,
+                            "flags": 16842752,
+                            "modifierFlagsCache": 0,
+                            "transformFlags": 0,
+                            "tagName": {
+                                "pos": 761,
+                                "end": 769,
+                                "kind": 80,
+                                "id": 0,
+                                "flags": 16842752,
+                                "transformFlags": 0,
+                                "escapedText": "required"
+                            },
+                            "comment": ""
+                        }
+                    ],
+                    "rawdescription": "\n\nButton contents\n\n",
+                    "description": "<p>Button contents</p>\n",
+                    "line": 37,
+                    "type": "string",
+                    "decorators": []
+                },
+                {
+                    "name": "primary",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "rawdescription": "\nIs this the principal call to action on the page?",
+                    "description": "<p>Is this the principal call to action on the page?</p>\n",
+                    "line": 21,
+                    "type": "boolean",
+                    "decorators": []
+                },
+                {
+                    "name": "size",
+                    "defaultValue": "'medium'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "rawdescription": "\nHow large should the button be?",
+                    "description": "<p>How large should the button be?</p>\n",
+                    "line": 29,
+                    "type": "\"small\" | \"medium\" | \"large\"",
+                    "decorators": []
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "onClick",
+                    "defaultValue": "new EventEmitter<Event>()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "rawdescription": "\nOptional click handler",
+                    "description": "<p>Optional click handler</p>\n",
+                    "line": 41,
+                    "type": "EventEmitter"
+                }
+            ],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport { Component, Input, Output, EventEmitter } from '@angular/core';\n\n@Component({\n  selector: 'storybook-button',\n  standalone: true,\n  imports: [CommonModule],\n  template: ` <button\n  type=\"button\"\n  (click)=\"onClick.emit($event)\"\n  [ngClass]=\"classes\"\n  [ngStyle]=\"{ 'background-color': backgroundColor }\"\n>\n  {{ label }}\n</button>`,\n  styleUrls: ['./button.css'],\n})\nexport class ButtonComponent {\n  /** Is this the principal call to action on the page? */\n  @Input()\n  primary = false;\n\n  /** What background color to use */\n  @Input()\n  backgroundColor?: string;\n\n  /** How large should the button be? */\n  @Input()\n  size: 'small' | 'medium' | 'large' = 'medium';\n\n  /**\n   * Button contents\n   *\n   * @required\n   */\n  @Input()\n  label = 'Button';\n\n  /** Optional click handler */\n  @Output()\n  onClick = new EventEmitter<Event>();\n\n  public get classes(): string[] {\n    const mode = this.primary ? 'storybook-button--primary' : 'storybook-button--secondary';\n\n    return ['storybook-button', `storybook-button--${this.size}`, mode];\n  }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": [
+                {
+                    "data": ".storybook-button {\n  display: inline-block;\n  cursor: pointer;\n  border: 0;\n  border-radius: 3em;\n  font-weight: 700;\n  line-height: 1;\n  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;\n}\n.storybook-button--primary {\n  background-color: #555ab9;\n  color: white;\n}\n.storybook-button--secondary {\n  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;\n  background-color: transparent;\n  color: #333;\n}\n.storybook-button--small {\n  padding: 10px 16px;\n  font-size: 12px;\n}\n.storybook-button--medium {\n  padding: 11px 20px;\n  font-size: 14px;\n}\n.storybook-button--large {\n  padding: 12px 24px;\n  font-size: 16px;\n}\n",
+                    "styleUrl": "./button.css"
+                }
+            ],
+            "stylesData": "",
+            "extends": [],
+            "accessors": {
+                "classes": {
+                    "name": "classes",
+                    "getSignature": {
+                        "name": "classes",
+                        "type": "[]",
+                        "returnType": "string[]",
+                        "line": 43
+                    }
+                }
+            }
+        },
+        {
+            "name": "DynamicFormComponent",
+            "id": "component-DynamicFormComponent-11910a2601146bda836885bb552f3c6207488c60de4ff8af9dc718b6cb18a04321e8cb2f7a0f468de43e5b42cfcab2b90c8a3283e6a4169cb32b0cfae393dbda",
+            "file": "src/app/dynamic-form/dynamic-form.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "app-dynamic-form",
+            "styleUrls": [],
+            "styles": [
+                "\n    form {\n      max-width: 500px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f9f9f9;\n      border-radius: 8px;\n      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n    }\n    \n    .form-actions {\n      display: flex;\n      gap: 10px;\n      margin-top: 20px;\n    }\n    \n    button {\n      padding: 8px 16px;\n      border: none;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 16px;\n    }\n    \n    button[type=\"submit\"] {\n      background-color: #007bff;\n      color: white;\n    }\n    \n    button[type=\"submit\"]:disabled {\n      background-color: #cccccc;\n      cursor: not-allowed;\n    }\n    \n    button[type=\"button\"] {\n      background-color: #6c757d;\n      color: white;\n    }\n    \n    pre {\n      background-color: #f0f0f0;\n      padding: 10px;\n      border-radius: 4px;\n      overflow: auto;\n      font-size: 14px;\n    }\n  "
+            ],
+            "template": "<form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\">\n  <div *ngFor=\"let field of formFields\">\n    <app-input\n      [formControlName]=\"field.key\"\n      [label]=\"field.label\"\n      [type]=\"field.type\"\n      [placeholder]=\"field.placeholder || ''\"\n      [showError]=\"isFieldInvalid(field.key)\"\n      [errorMessage]=\"getErrorMessage(field.key)\"\n    ></app-input>\n  </div>\n\n  <div class=\"form-actions\">\n    <button type=\"button\" (click)=\"resetForm()\">Reset</button>\n    <button type=\"submit\" [disabled]=\"form.invalid\">Submit</button>\n  </div>\n\n  <div *ngIf=\"submitted\">\n    <h3>Form Values:</h3>\n    <pre>{{ formValues }}</pre>\n  </div>\n</form>\n",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [],
+            "outputsClass": [],
+            "propertiesClass": [
+                {
+                    "name": "form",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "FormGroup",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 92
+                },
+                {
+                    "name": "formFields",
+                    "defaultValue": "[\n    {\n      key: 'firstName',\n      label: 'First Name',\n      type: 'text',\n      placeholder: 'Enter your first name',\n      required: true\n    },\n    {\n      key: 'lastName',\n      label: 'Last Name',\n      type: 'text',\n      placeholder: 'Enter your last name',\n      required: true\n    },\n    {\n      key: 'email',\n      label: 'Email',\n      type: 'email',\n      placeholder: 'Enter your email',\n      required: true,\n      validators: [Validators.email]\n    },\n    {\n      key: 'password',\n      label: 'Password',\n      type: 'password',\n      placeholder: 'Enter password',\n      required: true,\n      validators: [Validators.minLength(8)]\n    },\n    {\n      key: 'age',\n      label: 'Age',\n      type: 'number',\n      placeholder: 'Enter your age',\n      validators: [Validators.min(18), Validators.max(120)]\n    }\n  ]",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "FormField[]",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 97
+                },
+                {
+                    "name": "formValues",
+                    "defaultValue": "''",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 94
+                },
+                {
+                    "name": "submitted",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 93
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "createForm",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 143,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "getErrorMessage",
+                    "args": [
+                        {
+                            "name": "fieldName",
+                            "type": "string",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "string",
+                    "typeParameters": [],
+                    "line": 168,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "fieldName",
+                            "type": "string",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "isFieldInvalid",
+                    "args": [
+                        {
+                            "name": "fieldName",
+                            "type": "string",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "boolean",
+                    "typeParameters": [],
+                    "line": 163,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "fieldName",
+                            "type": "string",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "markFormGroupTouched",
+                    "args": [
+                        {
+                            "name": "formGroup",
+                            "type": "FormGroup",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 211,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "formGroup",
+                            "type": "FormGroup",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ngOnInit",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 139,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "onSubmit",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 200,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "resetForm",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 194,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                },
+                {
+                    "name": "ReactiveFormsModule",
+                    "type": "module"
+                },
+                {
+                    "name": "InputComponent",
+                    "type": "component"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormGroup, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';\nimport { InputComponent } from '../input/input.component';\n\ninterface FormField {\n  key: string;\n  label: string;\n  type: string;\n  placeholder?: string;\n  required?: boolean;\n  validators?: any[];\n}\n\n@Component({\n  selector: 'app-dynamic-form',\n  standalone: true,\n  imports: [CommonModule, ReactiveFormsModule, InputComponent],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\">\n      <div *ngFor=\"let field of formFields\">\n        <app-input\n          [formControlName]=\"field.key\"\n          [label]=\"field.label\"\n          [type]=\"field.type\"\n          [placeholder]=\"field.placeholder || ''\"\n          [showError]=\"isFieldInvalid(field.key)\"\n          [errorMessage]=\"getErrorMessage(field.key)\"\n        ></app-input>\n      </div>\n      \n      <div class=\"form-actions\">\n        <button type=\"button\" (click)=\"resetForm()\">Reset</button>\n        <button type=\"submit\" [disabled]=\"form.invalid\">Submit</button>\n      </div>\n      \n      <div *ngIf=\"submitted\">\n        <h3>Form Values:</h3>\n        <pre>{{ formValues }}</pre>\n      </div>\n    </form>\n  `,\n  styles: [`\n    form {\n      max-width: 500px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f9f9f9;\n      border-radius: 8px;\n      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n    }\n    \n    .form-actions {\n      display: flex;\n      gap: 10px;\n      margin-top: 20px;\n    }\n    \n    button {\n      padding: 8px 16px;\n      border: none;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 16px;\n    }\n    \n    button[type=\"submit\"] {\n      background-color: #007bff;\n      color: white;\n    }\n    \n    button[type=\"submit\"]:disabled {\n      background-color: #cccccc;\n      cursor: not-allowed;\n    }\n    \n    button[type=\"button\"] {\n      background-color: #6c757d;\n      color: white;\n    }\n    \n    pre {\n      background-color: #f0f0f0;\n      padding: 10px;\n      border-radius: 4px;\n      overflow: auto;\n      font-size: 14px;\n    }\n  `]\n})\nexport class DynamicFormComponent implements OnInit {\n  form!: FormGroup;\n  submitted = false;\n  formValues = '';\n  \n  // Define form fields dynamically\n  formFields: FormField[] = [\n    {\n      key: 'firstName',\n      label: 'First Name',\n      type: 'text',\n      placeholder: 'Enter your first name',\n      required: true\n    },\n    {\n      key: 'lastName',\n      label: 'Last Name',\n      type: 'text',\n      placeholder: 'Enter your last name',\n      required: true\n    },\n    {\n      key: 'email',\n      label: 'Email',\n      type: 'email',\n      placeholder: 'Enter your email',\n      required: true,\n      validators: [Validators.email]\n    },\n    {\n      key: 'password',\n      label: 'Password',\n      type: 'password',\n      placeholder: 'Enter password',\n      required: true,\n      validators: [Validators.minLength(8)]\n    },\n    {\n      key: 'age',\n      label: 'Age',\n      type: 'number',\n      placeholder: 'Enter your age',\n      validators: [Validators.min(18), Validators.max(120)]\n    }\n  ];\n\n  constructor(private fb: FormBuilder) {}\n\n  ngOnInit(): void {\n    this.createForm();\n  }\n\n  createForm(): void {\n    const formGroup: { [key: string]: FormControl } = {};\n    \n    this.formFields.forEach(field => {\n      const validators = [];\n      \n      if (field.required) {\n        validators.push(Validators.required);\n      }\n      \n      if (field.validators) {\n        validators.push(...field.validators);\n      }\n      \n      formGroup[field.key] = new FormControl('', validators);\n    });\n    \n    this.form = this.fb.group(formGroup);\n  }\n\n  isFieldInvalid(fieldName: string): boolean {\n    const control = this.form.get(fieldName);\n    return !!(control && control.invalid && (control.dirty || control.touched));\n  }\n\n  getErrorMessage(fieldName: string): string {\n    const control = this.form.get(fieldName);\n    \n    if (control?.hasError('required')) {\n      return 'This field is required';\n    }\n    \n    if (control?.hasError('email')) {\n      return 'Please enter a valid email address';\n    }\n    \n    if (control?.hasError('minlength')) {\n      return `Minimum length is ${control.getError('minlength').requiredLength} characters`;\n    }\n    \n    if (control?.hasError('min')) {\n      return `Minimum value is ${control.getError('min').min}`;\n    }\n    \n    if (control?.hasError('max')) {\n      return `Maximum value is ${control.getError('max').max}`;\n    }\n    \n    return 'Invalid input';\n  }\n\n  resetForm(): void {\n    this.form.reset();\n    this.submitted = false;\n    this.formValues = '';\n  }\n\n  onSubmit(): void {\n    if (this.form.valid) {\n      this.submitted = true;\n      this.formValues = JSON.stringify(this.form.value, null, 2);\n      console.log('Form submitted successfully:', this.form.value);\n    } else {\n      this.markFormGroupTouched(this.form);\n    }\n  }\n\n  // Helper to mark all controls as touched for validation\n  markFormGroupTouched(formGroup: FormGroup): void {\n    Object.values(formGroup.controls).forEach(control => {\n      control.markAsTouched();\n      \n      if ((control as any).controls) {\n        this.markFormGroupTouched(control as FormGroup);\n      }\n    });\n  }\n}",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "\n    form {\n      max-width: 500px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f9f9f9;\n      border-radius: 8px;\n      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n    }\n    \n    .form-actions {\n      display: flex;\n      gap: 10px;\n      margin-top: 20px;\n    }\n    \n    button {\n      padding: 8px 16px;\n      border: none;\n      border-radius: 4px;\n      cursor: pointer;\n      font-size: 16px;\n    }\n    \n    button[type=\"submit\"] {\n      background-color: #007bff;\n      color: white;\n    }\n    \n    button[type=\"submit\"]:disabled {\n      background-color: #cccccc;\n      cursor: not-allowed;\n    }\n    \n    button[type=\"button\"] {\n      background-color: #6c757d;\n      color: white;\n    }\n    \n    pre {\n      background-color: #f0f0f0;\n      padding: 10px;\n      border-radius: 4px;\n      overflow: auto;\n      font-size: 14px;\n    }\n  \n",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "line": 135,
+                "jsdoctags": [
+                    {
+                        "name": "fb",
+                        "type": "FormBuilder",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            },
+            "extends": [],
+            "implements": [
+                "OnInit"
+            ]
+        },
+        {
+            "name": "HeaderComponent",
+            "id": "component-HeaderComponent-48b9abe37706bc42f20cfa97ed9f943678344ea7d254c0c82183c657750c2191b43486fe730c778627b2ea6aa0e2f33a7abcf3ce08b68ad18b062ad99ea97acb",
+            "file": "src/stories/header.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "storybook-header",
+            "styleUrls": [
+                "./header.css"
+            ],
+            "styles": [],
+            "template": "<header>  <div class=\"storybook-header\">\n    <div>\n      <svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" xmlns=\"http://www.w3.org/2000/svg\">\n        <g fill=\"none\" fillRule=\"evenodd\">\n          <path\n            d=\"M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z\"\n            fill=\"#FFF\"\n          />\n          <path\n            d=\"M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z\"\n            fill=\"#555AB9\"\n          />\n          <path d=\"M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z\" fill=\"#91BAF8\" />\n        </g>\n      </svg>\n      <h1>Acme</h1>\n    </div>\n    <div>\n      <div *ngIf=\"user\">\n        <span class=\"welcome\">\n          Welcome, <b>{{ user.name }}</b\n          >!\n        </span>\n        <storybook-button\n          *ngIf=\"user\"\n          size=\"small\"\n          (onClick)=\"onLogout.emit($event)\"\n          label=\"Log out\"\n        ></storybook-button>\n      </div>\n      <div *ngIf=\"!user\">\n        <storybook-button\n          *ngIf=\"!user\"\n          size=\"small\"\n          class=\"margin-left\"\n          (onClick)=\"onLogin.emit($event)\"\n          label=\"Log in\"\n        ></storybook-button>\n        <storybook-button\n          *ngIf=\"!user\"\n          size=\"small\"\n          [primary]=\"true\"\n          class=\"margin-left\"\n          (onClick)=\"onCreateAccount.emit($event)\"\n          label=\"Sign up\"\n        ></storybook-button>\n      </div>\n    </div>\n  </div>\n</header>",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "user",
+                    "defaultValue": "null",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 66,
+                    "type": "User | null",
+                    "decorators": []
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "onCreateAccount",
+                    "defaultValue": "new EventEmitter<Event>()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 75,
+                    "type": "EventEmitter"
+                },
+                {
+                    "name": "onLogin",
+                    "defaultValue": "new EventEmitter<Event>()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 69,
+                    "type": "EventEmitter"
+                },
+                {
+                    "name": "onLogout",
+                    "defaultValue": "new EventEmitter<Event>()",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 72,
+                    "type": "EventEmitter"
+                }
+            ],
+            "propertiesClass": [],
+            "methodsClass": [],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                },
+                {
+                    "name": "ButtonComponent",
+                    "type": "component"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component, Input, Output, EventEmitter } from '@angular/core';\nimport { CommonModule } from '@angular/common';\n\nimport { ButtonComponent } from './button.component';\nimport type { User } from './user';\n\n@Component({\n  selector: 'storybook-header',\n  standalone: true,\n  imports: [CommonModule, ButtonComponent],\n  template: `<header>\n  <div class=\"storybook-header\">\n    <div>\n      <svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" xmlns=\"http://www.w3.org/2000/svg\">\n        <g fill=\"none\" fillRule=\"evenodd\">\n          <path\n            d=\"M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z\"\n            fill=\"#FFF\"\n          />\n          <path\n            d=\"M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z\"\n            fill=\"#555AB9\"\n          />\n          <path d=\"M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z\" fill=\"#91BAF8\" />\n        </g>\n      </svg>\n      <h1>Acme</h1>\n    </div>\n    <div>\n      <div *ngIf=\"user\">\n        <span class=\"welcome\">\n          Welcome, <b>{{ user.name }}</b\n          >!\n        </span>\n        <storybook-button\n          *ngIf=\"user\"\n          size=\"small\"\n          (onClick)=\"onLogout.emit($event)\"\n          label=\"Log out\"\n        ></storybook-button>\n      </div>\n      <div *ngIf=\"!user\">\n        <storybook-button\n          *ngIf=\"!user\"\n          size=\"small\"\n          class=\"margin-left\"\n          (onClick)=\"onLogin.emit($event)\"\n          label=\"Log in\"\n        ></storybook-button>\n        <storybook-button\n          *ngIf=\"!user\"\n          size=\"small\"\n          [primary]=\"true\"\n          class=\"margin-left\"\n          (onClick)=\"onCreateAccount.emit($event)\"\n          label=\"Sign up\"\n        ></storybook-button>\n      </div>\n    </div>\n  </div>\n</header>`,\n  styleUrls: ['./header.css'],\n})\nexport class HeaderComponent {\n  @Input()\n  user: User | null = null;\n\n  @Output()\n  onLogin = new EventEmitter<Event>();\n\n  @Output()\n  onLogout = new EventEmitter<Event>();\n\n  @Output()\n  onCreateAccount = new EventEmitter<Event>();\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": [
+                {
+                    "data": ".storybook-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  border-bottom: 1px solid rgba(0, 0, 0, 0.1);\n  padding: 15px 20px;\n  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;\n}\n\n.storybook-header svg {\n  display: inline-block;\n  vertical-align: top;\n}\n\n.storybook-header h1 {\n  display: inline-block;\n  vertical-align: top;\n  margin: 6px 0 6px 10px;\n  font-weight: 700;\n  font-size: 20px;\n  line-height: 1;\n}\n\n.storybook-header button + button {\n  margin-left: 10px;\n}\n\n.storybook-header .welcome {\n  margin-right: 10px;\n  color: #333;\n  font-size: 14px;\n}\n",
+                    "styleUrl": "./header.css"
+                }
+            ],
+            "stylesData": "",
+            "extends": []
+        },
+        {
+            "name": "InputComponent",
+            "id": "component-InputComponent-62757c88fbd8637752430805a93ccf6e2f4025b5fd7360f014a6c072e494327ea642cac6436a77b2a7282aca0daf51e3a02f98a226b39d260795497ea7cfeb74",
+            "file": "src/app/input/input.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [
+                {
+                    "name": "{\n    provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputComponent), multi: true,\n}",
+                    "type": "component"
+                }
+            ],
+            "selector": "app-input",
+            "styleUrls": [],
+            "styles": [
+                "\n    .form-field {\n      margin-bottom: 16px;\n    }\n    label {\n      display: block;\n      margin-bottom: 4px;\n      font-weight: 500;\n    }\n    input {\n      width: 100%;\n      padding: 8px;\n      border: 1px solid #ccc;\n      border-radius: 4px;\n      font-size: 16px;\n    }\n    input.error {\n      border-color: #dc3545;\n    }\n    .error-message {\n      color: #dc3545;\n      font-size: 14px;\n      margin-top: 4px;\n    }\n    input:disabled {\n      background-color: #e9ecef;\n      cursor: not-allowed;\n    }\n  "
+            ],
+            "template": "<div class=\"form-field\">\n  <label *ngIf=\"label\">{{ label }}</label>\n  <input\n    [type]=\"type\"\n    [placeholder]=\"placeholder\"\n    [disabled]=\"disabled\"\n    [ngClass]=\"{ 'error': showError }\"\n    [(ngModel)]=\"value\"\n  />\n  <div *ngIf=\"showError\" class=\"error-message\">{{ errorMessage }}</div>\n</div>\n",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "disabled",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 64,
+                    "type": "boolean",
+                    "decorators": []
+                },
+                {
+                    "name": "errorMessage",
+                    "defaultValue": "'This field is required'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 66,
+                    "type": "string",
+                    "decorators": []
+                },
+                {
+                    "name": "label",
+                    "defaultValue": "''",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 61,
+                    "type": "string",
+                    "decorators": []
+                },
+                {
+                    "name": "placeholder",
+                    "defaultValue": "''",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 62,
+                    "type": "string",
+                    "decorators": []
+                },
+                {
+                    "name": "showError",
+                    "defaultValue": "false",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 65,
+                    "type": "boolean",
+                    "decorators": []
+                },
+                {
+                    "name": "type",
+                    "defaultValue": "'text'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 63,
+                    "type": "string",
+                    "decorators": []
+                }
+            ],
+            "outputsClass": [],
+            "propertiesClass": [
+                {
+                    "name": "_value",
+                    "defaultValue": "''",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "any",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 68,
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "onChange",
+                    "defaultValue": "() => {...}",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "any",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 80
+                },
+                {
+                    "name": "onTouch",
+                    "defaultValue": "() => {...}",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "any",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 81
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "registerOnChange",
+                    "args": [
+                        {
+                            "name": "fn",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 87,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "fn",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "registerOnTouched",
+                    "args": [
+                        {
+                            "name": "fn",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 91,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "fn",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "setDisabledState",
+                    "args": [
+                        {
+                            "name": "isDisabled",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 95,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "isDisabled",
+                            "type": "boolean",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "writeValue",
+                    "args": [
+                        {
+                            "name": "value",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 83,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "value",
+                            "type": "any",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                },
+                {
+                    "name": "FormsModule",
+                    "type": "module"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule, NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';\n\n@Component({\n  selector: 'app-input',\n  standalone: true,\n  imports: [CommonModule, FormsModule],\n  template: `\n    <div class=\"form-field\">\n      <label *ngIf=\"label\">{{ label }}</label>\n      <input\n        [type]=\"type\"\n        [placeholder]=\"placeholder\"\n        [disabled]=\"disabled\"\n        [ngClass]=\"{ 'error': showError }\"\n        [(ngModel)]=\"value\"\n      />\n      <div *ngIf=\"showError\" class=\"error-message\">{{ errorMessage }}</div>\n    </div>\n  `,\n  styles: [`\n    .form-field {\n      margin-bottom: 16px;\n    }\n    label {\n      display: block;\n      margin-bottom: 4px;\n      font-weight: 500;\n    }\n    input {\n      width: 100%;\n      padding: 8px;\n      border: 1px solid #ccc;\n      border-radius: 4px;\n      font-size: 16px;\n    }\n    input.error {\n      border-color: #dc3545;\n    }\n    .error-message {\n      color: #dc3545;\n      font-size: 14px;\n      margin-top: 4px;\n    }\n    input:disabled {\n      background-color: #e9ecef;\n      cursor: not-allowed;\n    }\n  `],\n  providers: [\n    {\n      provide: NG_VALUE_ACCESSOR,\n      useExisting: forwardRef(() => InputComponent),\n      multi: true,\n    }\n  ]\n})\nexport class InputComponent implements ControlValueAccessor {\n  @Input() label = '';\n  @Input() placeholder = '';\n  @Input() type = 'text';\n  @Input() disabled = false;\n  @Input() showError = false;\n  @Input() errorMessage = 'This field is required';\n\n  private _value: any = '';\n  \n  get value() {\n    return this._value;\n  }\n  \n  set value(val) {\n    this._value = val;\n    this.onChange(val);\n    this.onTouch();\n  }\n\n  onChange: any = () => {};\n  onTouch: any = () => {};\n\n  writeValue(value: any): void {\n    this._value = value;\n  }\n\n  registerOnChange(fn: any): void {\n    this.onChange = fn;\n  }\n\n  registerOnTouched(fn: any): void {\n    this.onTouch = fn;\n  }\n\n  setDisabledState(isDisabled: boolean): void {\n    this.disabled = isDisabled;\n  }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "\n    .form-field {\n      margin-bottom: 16px;\n    }\n    label {\n      display: block;\n      margin-bottom: 4px;\n      font-weight: 500;\n    }\n    input {\n      width: 100%;\n      padding: 8px;\n      border: 1px solid #ccc;\n      border-radius: 4px;\n      font-size: 16px;\n    }\n    input.error {\n      border-color: #dc3545;\n    }\n    .error-message {\n      color: #dc3545;\n      font-size: 14px;\n      margin-top: 4px;\n    }\n    input:disabled {\n      background-color: #e9ecef;\n      cursor: not-allowed;\n    }\n  \n",
+            "extends": [],
+            "implements": [
+                "ControlValueAccessor"
+            ],
+            "accessors": {
+                "value": {
+                    "name": "value",
+                    "setSignature": {
+                        "name": "value",
+                        "type": "void",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "args": [
+                            {
+                                "name": "val",
+                                "type": "",
+                                "deprecated": false,
+                                "deprecationMessage": ""
+                            }
+                        ],
+                        "returnType": "void",
+                        "line": 74,
+                        "jsdoctags": [
+                            {
+                                "name": "val",
+                                "type": "",
+                                "deprecated": false,
+                                "deprecationMessage": "",
+                                "tagName": {
+                                    "text": "param"
+                                }
+                            }
+                        ]
+                    },
+                    "getSignature": {
+                        "name": "value",
+                        "type": "",
+                        "returnType": "",
+                        "line": 70
+                    }
+                }
+            }
+        },
+        {
+            "name": "PageComponent",
+            "id": "component-PageComponent-21dd6eb370b4983b5c21c84d40e6f54d266a9d9af9889e6e76b35c43058bd53b3e451bad089d5adf4bea46647ba10265a2fa8cb15630398e75636307d4817fc6",
+            "file": "src/stories/page.component.ts",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "storybook-page",
+            "styleUrls": [
+                "./page.css"
+            ],
+            "styles": [],
+            "template": "<article>  <storybook-header\n    [user]=\"user\"\n    (onLogout)=\"doLogout()\"\n    (onLogin)=\"doLogin()\"\n    (onCreateAccount)=\"doCreateAccount()\"\n  ></storybook-header>\n  <section class=\"storybook-page\">\n    <h2>Pages in Storybook</h2>\n    <p>\n      We recommend building UIs with a\n      <a href=\"https://componentdriven.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n        <strong>component-driven</strong>\n      </a>\n      process starting with atomic components and ending with pages.\n    </p>\n    <p>\n      Render pages with mock data. This makes it easy to build and review page states without\n      needing to navigate to them in your app. Here are some handy patterns for managing page data\n      in Storybook:\n    </p>\n    <ul>\n      <li>\n        Use a higher-level connected component. Storybook helps you compose such data from the\n        \"args\" of child component stories\n      </li>\n      <li>\n        Assemble data in the page component from your services. You can mock these services out\n        using Storybook.\n      </li>\n    </ul>\n    <p>\n      Get a guided tutorial on component-driven development at\n      <a href=\"https://storybook.js.org/tutorials/\" target=\"_blank\" rel=\"noopener noreferrer\">\n        Storybook tutorials\n      </a>\n      . Read more in the\n      <a href=\"https://storybook.js.org/docs\" target=\"_blank\" rel=\"noopener noreferrer\"> docs </a>\n      .\n    </p>\n    <div class=\"tip-wrapper\">\n      <span class=\"tip\">Tip</span> Adjust the width of the canvas with the\n      <svg width=\"10\" height=\"10\" viewBox=\"0 0 12 12\" xmlns=\"http://www.w3.org/2000/svg\">\n        <g fill=\"none\" fillRule=\"evenodd\">\n          <path\n            d=\"M1.5 5.2h4.8c.3 0 .5.2.5.4v5.1c-.1.2-.3.3-.4.3H1.4a.5.5 0 01-.5-.4V5.7c0-.3.2-.5.5-.5zm0-2.1h6.9c.3 0 .5.2.5.4v7a.5.5 0 01-1 0V4H1.5a.5.5 0 010-1zm0-2.1h9c.3 0 .5.2.5.4v9.1a.5.5 0 01-1 0V2H1.5a.5.5 0 010-1zm4.3 5.2H2V10h3.8V6.2z\"\n            id=\"a\"\n            fill=\"#999\"\n          />\n        </g>\n      </svg>\n      Viewports addon in the toolbar\n    </div>\n  </section>\n</article>",
+            "templateUrl": [],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [],
+            "outputsClass": [],
+            "propertiesClass": [
+                {
+                    "name": "user",
+                    "defaultValue": "null",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "User | null",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 69
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "doCreateAccount",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 79,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "doLogin",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 75,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "doLogout",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 71,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                },
+                {
+                    "name": "HeaderComponent",
+                    "type": "component"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { Component } from '@angular/core';\nimport { CommonModule } from '@angular/common';\n\nimport { HeaderComponent } from './header.component';\nimport type { User } from './user';\n\n@Component({\n  selector: 'storybook-page',\n  standalone: true,\n  imports: [CommonModule, HeaderComponent],\n  template: `<article>\n  <storybook-header\n    [user]=\"user\"\n    (onLogout)=\"doLogout()\"\n    (onLogin)=\"doLogin()\"\n    (onCreateAccount)=\"doCreateAccount()\"\n  ></storybook-header>\n  <section class=\"storybook-page\">\n    <h2>Pages in Storybook</h2>\n    <p>\n      We recommend building UIs with a\n      <a href=\"https://componentdriven.org\" target=\"_blank\" rel=\"noopener noreferrer\">\n        <strong>component-driven</strong>\n      </a>\n      process starting with atomic components and ending with pages.\n    </p>\n    <p>\n      Render pages with mock data. This makes it easy to build and review page states without\n      needing to navigate to them in your app. Here are some handy patterns for managing page data\n      in Storybook:\n    </p>\n    <ul>\n      <li>\n        Use a higher-level connected component. Storybook helps you compose such data from the\n        \"args\" of child component stories\n      </li>\n      <li>\n        Assemble data in the page component from your services. You can mock these services out\n        using Storybook.\n      </li>\n    </ul>\n    <p>\n      Get a guided tutorial on component-driven development at\n      <a href=\"https://storybook.js.org/tutorials/\" target=\"_blank\" rel=\"noopener noreferrer\">\n        Storybook tutorials\n      </a>\n      . Read more in the\n      <a href=\"https://storybook.js.org/docs\" target=\"_blank\" rel=\"noopener noreferrer\"> docs </a>\n      .\n    </p>\n    <div class=\"tip-wrapper\">\n      <span class=\"tip\">Tip</span> Adjust the width of the canvas with the\n      <svg width=\"10\" height=\"10\" viewBox=\"0 0 12 12\" xmlns=\"http://www.w3.org/2000/svg\">\n        <g fill=\"none\" fillRule=\"evenodd\">\n          <path\n            d=\"M1.5 5.2h4.8c.3 0 .5.2.5.4v5.1c-.1.2-.3.3-.4.3H1.4a.5.5 0 01-.5-.4V5.7c0-.3.2-.5.5-.5zm0-2.1h6.9c.3 0 .5.2.5.4v7a.5.5 0 01-1 0V4H1.5a.5.5 0 010-1zm0-2.1h9c.3 0 .5.2.5.4v9.1a.5.5 0 01-1 0V2H1.5a.5.5 0 010-1zm4.3 5.2H2V10h3.8V6.2z\"\n            id=\"a\"\n            fill=\"#999\"\n          />\n        </g>\n      </svg>\n      Viewports addon in the toolbar\n    </div>\n  </section>\n</article>`,\n  styleUrls: ['./page.css'],\n})\nexport class PageComponent {\n  user: User | null = null;\n\n  doLogout() {\n    this.user = null;\n  }\n\n  doLogin() {\n    this.user = { name: 'Jane Doe' };\n  }\n\n  doCreateAccount() {\n    this.user = { name: 'Jane Doe' };\n  }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": [
+                {
+                    "data": ".storybook-page {\n  margin: 0 auto;\n  padding: 48px 20px;\n  max-width: 600px;\n  color: #333;\n  font-size: 14px;\n  line-height: 24px;\n  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;\n}\n\n.storybook-page h2 {\n  display: inline-block;\n  vertical-align: top;\n  margin: 0 0 4px;\n  font-weight: 700;\n  font-size: 32px;\n  line-height: 1;\n}\n\n.storybook-page p {\n  margin: 1em 0;\n}\n\n.storybook-page a {\n  color: inherit;\n}\n\n.storybook-page ul {\n  margin: 1em 0;\n  padding-left: 30px;\n}\n\n.storybook-page li {\n  margin-bottom: 8px;\n}\n\n.storybook-page .tip {\n  display: inline-block;\n  vertical-align: top;\n  margin-right: 10px;\n  border-radius: 1em;\n  background: #e7fdd8;\n  padding: 4px 12px;\n  color: #357a14;\n  font-weight: 700;\n  font-size: 11px;\n  line-height: 12px;\n}\n\n.storybook-page .tip-wrapper {\n  margin-top: 40px;\n  margin-bottom: 40px;\n  font-size: 13px;\n  line-height: 20px;\n}\n\n.storybook-page .tip-wrapper svg {\n  display: inline-block;\n  vertical-align: top;\n  margin-top: 3px;\n  margin-right: 4px;\n  width: 12px;\n  height: 12px;\n}\n\n.storybook-page .tip-wrapper svg path {\n  fill: #1ea7fd;\n}\n",
+                    "styleUrl": "./page.css"
+                }
+            ],
+            "stylesData": "",
+            "extends": []
+        }
+    ],
+    "modules": [],
+    "miscellaneous": [],
+    "routes": [],
+    "coverage": {
+        "count": 10,
+        "status": "low",
+        "files": [
+            {
+                "filePath": "src/app/app.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "AppComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/dynamic-form/dynamic-form.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "DynamicFormComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/13",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/dynamic-form/dynamic-form.component.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "FormField",
+                "coveragePercent": 0,
+                "coverageCount": "0/7",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/input/input.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "InputComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/14",
+                "status": "low"
+            },
+            {
+                "filePath": "src/stories/button.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "ButtonComponent",
+                "coveragePercent": 83,
+                "coverageCount": "5/6",
+                "status": "very-good"
+            },
+            {
+                "filePath": "src/stories/header.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "HeaderComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/5",
+                "status": "low"
+            },
+            {
+                "filePath": "src/stories/page.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "PageComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/5",
+                "status": "low"
+            },
+            {
+                "filePath": "src/stories/user.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "User",
+                "coveragePercent": 0,
+                "coverageCount": "0/2",
+                "status": "low"
+            }
+        ]
+    }
+}

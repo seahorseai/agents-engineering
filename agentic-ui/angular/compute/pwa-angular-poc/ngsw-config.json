@@ -1,0 +1,19 @@
+{
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/index.html",
+          "/styles*.css",
+          "/pollyfills*.js",
+          "/main*.js",
+          "favicon.ico"
+        ]
+      }
+    }
+  ]
+}

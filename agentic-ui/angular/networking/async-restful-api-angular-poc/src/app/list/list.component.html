@@ -1,0 +1,9 @@
+<h1>User List</h1>
+<button (click)="loadUsers()">Load users</button>
+<ul>
+	@for (user of users | async; track $index) {
+	<li>{{user.name}}</li>
+	} @empty {
+	 <li>No users!</li>
+	}
+</ul>

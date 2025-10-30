@@ -1,0 +1,6 @@
+<h1>Car List</h1>
+<ul>
+	@for (car of carList; track $index) {
+		<li>{{ car.manufacturer }} {{ car.model }}, made in {{ car.year }}</li>		
+	}
+</ul>
